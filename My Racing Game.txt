@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Basic Racing Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #444;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #222;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script>
+    var canvas = document.getElementById('gameCanvas');
+    var ctx = canvas.getContext('2d');
+
+    // গাড়ির অবজেক্ট
+    var car = {
+      x: canvas.width / 2 - 25,
+      y: canvas.height - 90,
+      width: 50,
+      height: 80,
+      speed: 5
+    };
+
+    var keys = {};
+    var obstacles = [];
+    var obstacleSpeed = 3;
+    var score = 0;
+
+    // কিবোর্ড ইভেন্ট
+    document.addEventListener('keydown', function(e) {
+      keys[e.keyCode] = true;
+    });
+    document.addEventListener('keyup', function(e) {
+      keys[e.keyCode] = false;
+    });
+
+    // গেম আপডেট ফাংশন
+    function update() {
+      // বাম/ডান মুভমেন্ট
+      if (keys[37] && car.x > 0) { // বাম অ্যারো
+        car.x -= car.speed;
+      }
+      if (keys[39] && car.x < canvas.width - car.width) { // ডান অ্যারো
+        car.x += car.speed;
+      }
+
+      // নতুন বাধা (obstacle) যোগ করুন
+      if (Math.random() < 0.02) {
+        var obsWidth = 50 + Math.random() * 50;
+        var obsX = Math.random() * (canvas.width - obsWidth);
+        obstacles.push({ x: obsX, y: -50, width: obsWidth, height: 20 });
+      }
+
+      // বাধাগুলো আপডেট করুন
+      for (var i = 0; i < obstacles.length; i++) {
+        obstacles[i].y += obstacleSpeed;
+      }
+
+      // স্ক্রিনের বাইরে গেলে বাধা সরান
+      obstacles = obstacles.filter(function(obs) {
+        return obs.y < canvas.height;
+      });
+
+      // গাড়ির সাথে বাধার সংঘর্ষ চেক করুন
+      for (var i = 0; i < obstacles.length; i++) {
+        var obs = obstacles[i];
+        if (car.x < obs.x + obs.width &&
+            car.x + car.width > obs.x &&
+            car.y < obs.y + obs.height &&
+            car.y + car.height > obs.y) {
+          alert("Game Over! Your Score: " + score);
+          document.location.reload();
+        }
+      }
+      
+      score++;
+    }
+
+    // গেম ড্র করার ফাংশন
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // গাড়ি আঁকা
+      ctx.fillStyle = "red";
+      ctx.fillRect(car.x, car.y, car.width, car.height);
+      
+      // বাধা আঁকা
+      ctx.fillStyle = "yellow";
+      for (var i = 0; i < obstacles.length; i++) {
+        var obs = obstacles[i];
+        ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+      }
+      
+      // স্কোর দেখান
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText("Score: " + score, 10, 30);
+    }
+
+    // গেম লুপ
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+  </script>
+</body>
+</html>
+
